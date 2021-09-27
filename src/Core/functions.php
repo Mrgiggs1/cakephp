@@ -311,7 +311,14 @@ if (!function_exists('deprecationWarning')) {
 
         static $errors = [];
         $checksum = md5($message);
-        if (isset($errors[$checksum])) {
+        if (
+                isset($errors[$checksum]) &&
+                (
+                    // show all deprecations when phpunit runs
+                    PHP_SAPI !== 'cli' ||
+                    !in_array('PHPUnit\Framework\TestCase', array_column($trace, 'class'), true)
+                )
+        ) {
             return;
         }
         $errors[$checksum] = true;

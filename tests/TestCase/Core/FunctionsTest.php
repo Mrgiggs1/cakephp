@@ -92,6 +92,30 @@ class FunctionsTest extends TestCase
     }
 
     /**
+     * Test duplicate deprecations emit in cli environment and when run PHPUnit
+     */
+    public function testDeprecationWarningTriggersAllCasesInPHPUnit(): void
+    {
+        $this->expectDeprecation();
+        $this->expectDeprecationMessageMatches('/Test duplicated warning. - (.*?)[\/\\\]TestCase.php, line\: \d+/');
+
+        $message = 'Test duplicated warning.';
+        try {
+            $this->withErrorReporting(E_ALL, function () use ($message): void {
+                deprecationWarning($message);
+            });
+            $this->fail();
+        } catch (\Exception $e) {
+            $this->assertStringContainsString($message, $e->getMessage());
+            $this->assertStringContainsString('TestCase.php', $e->getMessage());
+        }
+
+        $this->withErrorReporting(E_ALL, function () use ($message): void {
+            deprecationWarning($message);
+        });
+    }
+
+    /**
      * Test error messages coming out when deprecated level is on, not setting the stack frame manually
      */
     public function testDeprecationWarningEnabledDefaultFrame(): void
